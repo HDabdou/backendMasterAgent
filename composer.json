@@ -1,0 +1,22 @@
+{
+    "name": "nioudem",
+    "authors": [
+        {
+            "name": "adama goudiaby",
+            "email": "goudiabyadama0911@gmail.com"
+        }
+    ],
+    
+    "autoload":{
+        "psr-4":{
+            "App\\":"app/"
+        },
+        "classmap": [
+            "lib/"
+        ]
+    },
+    
+    "require": {
+        "slim/slim": "^3.7"
+    }
+}
