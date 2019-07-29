@@ -89,27 +89,54 @@ class paiement_marchandController extends Controller {
             $repII=$reqII->execute(array(":id_user"=>$id_user,));
             $cautionUpdater=$reqII->fetch();
 
+            if($param->montant > 0){
+              if($cautionUpdater[0] >= $param->montant ){
+
+               $reqI1=$this->bdd->prepare("UPDATE cautions SET caution=:caution WHERE id_user=:id_user");
+               $repI1=$reqI1->execute(array(":caution"=>intval($cautionReceiver[0] + $param->montant),":id_user"=>$param->id_receiver,));
+
+              $reqII1=$this->bdd->prepare("UPDATE cautions SET caution=:caution WHERE id_user=:id_user");
+              $repII1=$reqII1->execute(array(":caution"=>intval($cautionUpdater[0] - $param->montant),":id_user"=>$id_user,));
+
+              //$cautionUpdater=$reqII->fetch();
+              \date_default_timezone_set('UTC');
+              $date=new \DateTime();
+              $date=$date->format('Y-m-d H:i');
+
+               $reqIII=$this->bdd->prepare("INSERT INTO trace(updater,operation,idprop,daterenflu,infosup) VALUES(:updater,:operation,:idprop,:daterenflu,:infosup)");
+               $status=$reqIII->execute(array(":updater"=>$updater,":operation"=>'renflu',":idprop"=>$id_user,":daterenflu"=>$date,":infosup" => $montantUpdate,));
 
 
-            $reqI1=$this->bdd->prepare("UPDATE cautions SET caution=:caution WHERE id_user=:id_user");
-            $repI1=$reqI1->execute(array(":caution"=>intval($cautionReceiver[0] + $param->montant),":id_user"=>$param->id_receiver,));
-            //$cautionReceiver=$reqI->fetch();
+              return $response->withJson(array("code"=>1,"message"=>"deposite reussi"),200);
+              }else{
+                return $response->withJson(array("code"=>0,"message"=>"Solde master insuffisant"),200);
+              }
 
-            //return $response->withJson(array("code"=>1,"message"=>$repI1),200);  
+            }else{
+               $montantTOpositive = abs(intval($param->montant));
+               if($cautionReceiver <= $montantTOpositive){
 
-            $reqII1=$this->bdd->prepare("UPDATE cautions SET caution=:caution WHERE id_user=:id_user");
-            $repII1=$reqII1->execute(array(":caution"=>intval($cautionUpdater[0] - $param->montant),":id_user"=>$id_user,));
+                $reqI1=$this->bdd->prepare("UPDATE cautions SET caution=:caution WHERE id_user=:id_user");
+                $repI1=$reqI1->execute(array(":caution"=>intval($cautionReceiver[0] + $param->montant),":id_user"=>$param->id_receiver,));
 
-            //$cautionUpdater=$reqII->fetch();
-            \date_default_timezone_set('UTC');
-            $date=new \DateTime();
-            $date=$date->format('Y-m-d H:i');
+                $reqII1=$this->bdd->prepare("UPDATE cautions SET caution=:caution WHERE id_user=:id_user");
+                $repII1=$reqII1->execute(array(":caution"=>intval($cautionUpdater[0] - $param->montant),":id_user"=>$id_user,));
 
-             $reqIII=$this->bdd->prepare("INSERT INTO trace(updater,operation,idprop,daterenflu,infosup) VALUES(:updater,:operation,:idprop,:daterenflu,:infosup)");
-             $status=$reqIII->execute(array(":updater"=>$updater,":operation"=>'renflu',":idprop"=>$id_user,":daterenflu"=>$date,":infosup" => $montantUpdate,));
+                //$cautionUpdater=$reqII->fetch();
+                \date_default_timezone_set('UTC');
+                $date=new \DateTime();
+                $date=$date->format('Y-m-d H:i');
 
+                 $reqIII=$this->bdd->prepare("INSERT INTO trace(updater,operation,idprop,daterenflu,infosup) VALUES(:updater,:operation,:idprop,:daterenflu,:infosup)");
+                 $status=$reqIII->execute(array(":updater"=>$updater,":operation"=>'renflu',":idprop"=>$id_user,":daterenflu"=>$date,":infosup" => $montantUpdate,));
+                return $response->withJson(array("code"=>1,"message"=>"retrait reussi"),200);
+               }else{
+                return $response->withJson(array("code"=>0,"message"=>"Solde point insuffisant"),200);
+               }
+               
+            }
 
-            return $response->withJson(array("code"=>1,"message"=>"update done"),200);
+           
           //}else{
             //return $response->withJson(array("code"=>$rep1,"message"=>"erreur au niveau du serveur"),500);
           //}
