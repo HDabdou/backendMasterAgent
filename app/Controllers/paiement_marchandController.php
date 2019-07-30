@@ -114,13 +114,14 @@ class paiement_marchandController extends Controller {
 
             }else{
                $montantTOpositive = abs(intval($param->montant));
-               if($cautionReceiver <= $montantTOpositive){
+              //return $response->withJson(array("code"=>1,"message"=>$param->montant),200);
+               if($cautionReceiver >= $montantTOpositive){
 
                 $reqI1=$this->bdd->prepare("UPDATE cautions SET caution=:caution WHERE id_user=:id_user");
                 $repI1=$reqI1->execute(array(":caution"=>intval($cautionReceiver[0] + $param->montant),":id_user"=>$param->id_receiver,));
 
                 $reqII1=$this->bdd->prepare("UPDATE cautions SET caution=:caution WHERE id_user=:id_user");
-                $repII1=$reqII1->execute(array(":caution"=>intval($cautionUpdater[0] - $param->montant),":id_user"=>$id_user,));
+                $repII1=$reqII1->execute(array(":caution"=>intval($cautionUpdater[0] - intval($param->montant)),":id_user"=>$id_user,));
 
                 //$cautionUpdater=$reqII->fetch();
                 \date_default_timezone_set('UTC');
